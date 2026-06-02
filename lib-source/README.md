@@ -259,6 +259,18 @@ The script copies the runtime file to:
 lib/sqlite-vec/x86_64-linux/vec0.so
 ```
 
+## FPC Linux Examples
+
+The FPC examples under `examples/fpc` need the Free Pascal compiler plus the
+standard unit packages required by mORMot:
+
+```bash
+sudo apt update
+sudo apt install -y fp-compiler fp-units-rtl fp-units-base fp-units-fcl fp-units-misc fpc-source
+```
+
+See `examples/fpc/README.md` for the example-specific build and run commands.
+
 ## Model Notes
 
 `all-MiniLM-L6-v2` works as the small demo model with 384 dimensions. BGE-M3

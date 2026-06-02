@@ -1,5 +1,34 @@
 # FPC Linux Examples
 
+## Required FPC Packages
+
+On Ubuntu/WSL, install the Free Pascal compiler and the FPC unit packages used
+by mORMot:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  fp-compiler \
+  fp-units-rtl \
+  fp-units-base \
+  fp-units-fcl \
+  fp-units-misc \
+  fpc-source
+```
+
+Why these packages are needed:
+
+```text
+fp-compiler    -> fpc/ppca64 compiler
+fp-units-rtl   -> core RTL units such as SysUtils and Classes
+fp-units-base  -> base FPC units used by mORMot
+fp-units-fcl   -> FCL units such as contnrs
+fp-units-misc  -> POSIX/helper units such as pwd
+fpc-source     -> useful for IDE navigation and diagnostics
+```
+
+The local WSL setup used for testing had FPC `3.2.2` on Linux `aarch64`.
+
 ## LembedVectorDemo
 
 `LembedVectorDemo.lpr` is a Linux/FPC console version of the simple Delphi
