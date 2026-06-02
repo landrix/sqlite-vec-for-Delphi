@@ -17,7 +17,7 @@ const
   // Zum Testen mit BGE-M3 die nächste Zeile aktivieren.
   // Hinweis: Die mitgelieferte sqlite-lembed v0.0.1-alpha.8 DLL kann
   // bge-m3-q8_0.gguf je nach GGUF/llama.cpp-Version nicht laden.
-  {.$DEFINE USE_BGE_M3}
+  {$DEFINE USE_BGE_M3}
 
   {$IFDEF USE_BGE_M3}
   CModelFile = 'bge-m3-q8_0.gguf';
@@ -135,7 +135,10 @@ begin
     WriteLn(lSearch.GetStats);
     
   finally
+    WriteLn;
+    WriteLn('Räume Modell und Datenbank auf...');
     lSearch.Free;
+    WriteLn('✓ Aufräumen abgeschlossen');
   end;
   
   WriteLn;

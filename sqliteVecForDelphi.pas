@@ -68,6 +68,34 @@ begin
   finally
     rcstr.Free;
   end;
+  rcstr := TResourceStream.Create(hInstance, 'LEMBED0DLL1', RT_RCDATA);
+  try
+    rcstr.Position := 0;
+    rcstr.SaveToFile(ExtractFilePath(ParamStr(0))+'ggml.dll');
+  finally
+    rcstr.Free;
+  end;
+  rcstr := TResourceStream.Create(hInstance, 'LEMBED0DLL2', RT_RCDATA);
+  try
+    rcstr.Position := 0;
+    rcstr.SaveToFile(ExtractFilePath(ParamStr(0))+'ggml-base.dll');
+  finally
+    rcstr.Free;
+  end;
+  rcstr := TResourceStream.Create(hInstance, 'LEMBED0DLL3', RT_RCDATA);
+  try
+    rcstr.Position := 0;
+    rcstr.SaveToFile(ExtractFilePath(ParamStr(0))+'ggml-cpu.dll');
+  finally
+    rcstr.Free;
+  end;
+  rcstr := TResourceStream.Create(hInstance, 'LEMBED0DLL4', RT_RCDATA);
+  try
+    rcstr.Position := 0;
+    rcstr.SaveToFile(ExtractFilePath(ParamStr(0))+'llama.dll');
+  finally
+    rcstr.Free;
+  end;
 end;
 
 class procedure TSQLDatabaseVectorHelper.ExtractVec0Dll;

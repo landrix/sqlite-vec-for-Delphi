@@ -72,6 +72,39 @@ For BGE-M3 support, rebuild `lembed0.dll` from the `landrix/sqlite-lembed`
 submodule with a compatible `llama.cpp` version, then replace the DLL used by
 the Delphi example output directory.
 
+The local integration branch currently used for this work is:
+
+```text
+landrix/update-llama-pr19-21
+```
+
+It contains the upstream sqlite-lembed pull requests:
+
+- `#19` - update `llama.cpp`, adapt the new llama.cpp API, fix build process.
+- `#21` - prevent crashes for long inputs and return better embedding errors.
+
+Build the x64 DLLs from `lib-source/sqlite-lembed` with:
+
+```powershell
+cmd /c "call ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"" && cmake -S . -B build-vs-x64 -G ""Visual Studio 17 2022"" -A x64 -DCMAKE_BUILD_TYPE=Release && cmake --build build-vs-x64 --config Release --target sqlite_lembed -- /m"
+```
+
+The runtime DLLs are written to:
+
+```text
+lib-source/sqlite-lembed/build-vs-x64/bin/Release
+```
+
+Copy these files together into the Delphi output directory:
+
+```text
+lembed0.dll
+llama.dll
+ggml.dll
+ggml-base.dll
+ggml-cpu.dll
+```
+
 After changing the embedding model or rebuilding against a llama.cpp version
 that changes embedding output, regenerate all stored embeddings and rebuild the
 vector index.
