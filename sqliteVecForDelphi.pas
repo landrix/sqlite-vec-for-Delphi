@@ -22,15 +22,40 @@ type
 
   TSQLDatabaseVectorHelper = class
   public
+    class procedure EnableExtensionLoading(aDB: TSqlite3DB);
     class procedure ExtractVec0Dll;
+    class procedure ExtractVectorDll;
     class procedure ExtractLembed0Dll;
+    class procedure LoadExtension(aDB: TSqlite3DB; const aFileName: RawUtf8);
   end;
 
-{$R sqliteVecForDelphi.res}
+{$R sqliteVecForDelphiResource.res}
 
 implementation
 
 { TSQLDatabaseVectorHelper }
+
+class procedure TSQLDatabaseVectorHelper.EnableExtensionLoading(aDB: TSqlite3DB);
+var
+  lResult: Integer;
+  lEnabled: Integer;
+begin
+  if not Assigned(sqlite3.db_config) then
+    raise Exception.Create('sqlite3_db_config ist nicht verfügbar.');
+
+  lEnabled := 0;
+  lResult := sqlite3.db_config(
+    aDB,
+    SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION,
+    1,
+    @lEnabled
+  );
+  if lResult <> SQLITE_OK then
+    raise Exception.CreateFmt(
+      'Extension loading konnte nicht aktiviert werden: %s',
+      [Utf8ToString(sqlite3.errmsg(aDB))]
+    );
+end;
 
 class procedure TSQLDatabaseVectorHelper.ExtractLembed0Dll;
 var
@@ -56,6 +81,50 @@ begin
   finally
     rcstr.Free;
   end;
+end;
+
+class procedure TSQLDatabaseVectorHelper.ExtractVectorDll;
+var
+  rcstr : TResourceStream;
+begin
+  rcstr := TResourceStream.Create(hInstance, 'VECTORDLL', RT_RCDATA);
+  try
+    rcstr.Position := 0;
+    rcstr.SaveToFile(ExtractFilePath(ParamStr(0))+'vector.dll');
+  finally
+    rcstr.Free;
+  end;
+end;
+
+class procedure TSQLDatabaseVectorHelper.LoadExtension(aDB: TSqlite3DB;
+  const aFileName: RawUtf8);
+var
+  lMsg: PUtf8Char;
+  lError: string;
+  lResult: Integer;
+begin
+  lMsg := nil;
+  lResult := sqlite3.load_extension(
+    aDB,
+    PUtf8Char(pointer(aFileName)),
+    nil,
+    lMsg
+  );
+  if lResult = SQLITE_OK then
+    Exit;
+
+  if lMsg <> nil then
+  begin
+    lError := Utf8ToString(lMsg);
+    sqlite3.free_(lMsg);
+  end
+  else
+    lError := Utf8ToString(sqlite3.errmsg(aDB));
+
+  raise Exception.CreateFmt(
+    'Fehler beim Laden von %s: %s',
+    [Utf8ToString(aFileName), lError]
+  );
 end;
 
 end.

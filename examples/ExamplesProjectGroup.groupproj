@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{1D95EC26-4499-47F0-A2A4-C88B2489AA86}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="simple-delphi\SimpleDelphi.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="simple-delphi\LembedVectorDemo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="simple-delphi\VectorLembedFormDemo.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="SimpleDelphi">
+        <MSBuild Projects="simple-delphi\SimpleDelphi.dproj"/>
+    </Target>
+    <Target Name="SimpleDelphi:Clean">
+        <MSBuild Projects="simple-delphi\SimpleDelphi.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SimpleDelphi:Make">
+        <MSBuild Projects="simple-delphi\SimpleDelphi.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="LembedVectorDemo">
+        <MSBuild Projects="simple-delphi\LembedVectorDemo.dproj"/>
+    </Target>
+    <Target Name="LembedVectorDemo:Clean">
+        <MSBuild Projects="simple-delphi\LembedVectorDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="LembedVectorDemo:Make">
+        <MSBuild Projects="simple-delphi\LembedVectorDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="VectorLembedFormDemo">
+        <MSBuild Projects="simple-delphi\VectorLembedFormDemo.dproj"/>
+    </Target>
+    <Target Name="VectorLembedFormDemo:Clean">
+        <MSBuild Projects="simple-delphi\VectorLembedFormDemo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="VectorLembedFormDemo:Make">
+        <MSBuild Projects="simple-delphi\VectorLembedFormDemo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="SimpleDelphi;LembedVectorDemo;VectorLembedFormDemo"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="SimpleDelphi:Clean;LembedVectorDemo:Clean;VectorLembedFormDemo:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="SimpleDelphi:Make;LembedVectorDemo:Make;VectorLembedFormDemo:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
