@@ -124,8 +124,9 @@ Speziell für deutsche Texte empfohlene Modelle:
 
 | Modell | Dimensionen | Qualität | Download |
 |--------|-------------|----------|----------|
-| **nomic-embed-text-v1.5** ⭐ | 768 | ⭐⭐⭐⭐ | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF) |
-| **mxbai-embed-large-v1** | 1024 | ⭐⭐⭐⭐⭐ | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) |
+| **BGE-M3** ⭐ | 1024 | ⭐⭐⭐⭐⭐ | [Link](https://huggingface.co/gpustack/bge-m3-GGUF) |
+| **nomic-embed-text-v1.5** | 768 | ⭐⭐⭐⭐ | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF) |
+| **mxbai-embed-large-v1** | 1024 | ⭐⭐⭐⭐ | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) |
 | all-MiniLM-L6-v2 | 384 | ⭐⭐⭐ | [Link](https://huggingface.co/asg017/sqlite-lembed-model-examples) |
 
 **→ Mehr Modelle:** [EMBEDDING_MODELS_GUIDE.md](EMBEDDING_MODELS_GUIDE.md)
@@ -135,6 +136,7 @@ Speziell für deutsche Texte empfohlene Modelle:
 ### Embedding-Generierung (10.000 Dokumente)
 - all-MiniLM-L6-v2: ~45 Sekunden
 - nomic-v1.5 (Q8): ~2.5 Minuten
+- BGE-M3 (Q8): ~4-6 Minuten
 - mxbai-large (Q8): ~4 Minuten
 
 ### Suche (10.000 Vektoren)

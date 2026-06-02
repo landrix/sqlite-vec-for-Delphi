@@ -30,6 +30,10 @@ begin
     // WICHTIG: Passe den Pfad zum Modell an!
     // Download: https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-MiniLM-L6-v2/all-MiniLM-L6-v2.e4ce9877.q8_0.gguf
     lSearch.Initialize(ExtractFilePath(ParamStr(0))+'all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'miniLM');
+
+    // Download: https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF/resolve/main/bge-m3-q8_0.gguf?download=true
+    //lSearch.Initialize(ExtractFilePath(ParamStr(0))+'bge-m3-q8_0.gguf', 'bge-m3');
+
     WriteLn('✓ Initialisierung abgeschlossen');
     WriteLn;
     

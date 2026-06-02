@@ -354,6 +354,8 @@ https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-Mini
 ```
 → ~22 MB, 384 Dimensionen, Englisch
 
+Für deutsche oder mehrsprachige Tests empfiehlt sich stattdessen BGE-M3 (1024 Dimensionen) oder Nomic v1.5 (768 Dimensionen). Siehe [../EMBEDDING_MODELS_GUIDE.md](../EMBEDDING_MODELS_GUIDE.md).
+
 ---
 
 ## 🐛 Troubleshooting
@@ -368,6 +370,8 @@ https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-Mini
 → Vector-Tabelle muss Modell-Dimensionen entsprechen:
 - all-MiniLM-L6-v2: 384
 - nomic-1.5: 768
+- BGE-M3: 1024
+- mxbai-large: 1024
 
 ### Langsame Suche
 → Bei vector.dll: `QuantizeEmbeddings()` + `PreloadQuantized()` verwenden
@@ -429,7 +433,7 @@ Siehe Haupt-Repository Lizenz.
 ## 💡 Weitere Ideen
 
 ### Erweiterungen
-- Multi-Language Support (Deutsche Modelle)
+- Multi-Language Support (BGE-M3/Nomic für deutsche Modelle)
 - Hybrid-Suche (Text + Vektor)
 - Caching-Layer
 - REST-API Wrapper

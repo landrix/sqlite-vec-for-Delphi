@@ -86,8 +86,8 @@ Komplette Übersicht aller Dokumentationen für sqlite-vec-for-Delphi.
 | 3 | [README_VECTOR_LEMBED.md](examples/simple-delphi/README_VECTOR_LEMBED.md) | Produktions-Setup |
 
 **Empfohlene Modelle:**
+- BGE-M3 (1024 Dim)
 - nomic-embed-text-v1.5 (768 Dim)
-- mxbai-embed-large-v1 (1024 Dim)
 
 ### 🌐 Internationale Anwendungen
 
@@ -128,7 +128,7 @@ Komplette Übersicht aller Dokumentationen für sqlite-vec-for-Delphi.
 
 **Setup:**
 - Extension: vector.dll + lembed0.dll
-- Modell: nomic-v1.5 oder mxbai
+- Modell: BGE-M3 oder nomic-v1.5
 - Features: Quantisierung, Kategorien, Preise
 
 ### Dokumenten-Management
@@ -142,7 +142,7 @@ Komplette Übersicht aller Dokumentationen für sqlite-vec-for-Delphi.
 
 **Setup:**
 - Extension: vec0.dll + lembed0.dll
-- Modell: nomic-v1.5 (für Deutsch)
+- Modell: BGE-M3 oder nomic-v1.5 (für Deutsch)
 - Features: Einfach, schnell zu implementieren
 
 ### Multimodale Suche (Bild + Text)
@@ -240,6 +240,7 @@ Komplette Übersicht aller Dokumentationen für sqlite-vec-for-Delphi.
 ### Downloads
 
 - **Modelle:** https://huggingface.co/asg017/sqlite-lembed-model-examples
+- **BGE-M3 GGUF:** https://huggingface.co/gpustack/bge-m3-GGUF
 - **Nomic v1.5:** https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF
 - **mxbai Large:** https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
 

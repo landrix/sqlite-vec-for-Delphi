@@ -11,18 +11,17 @@ uses
 
 var
   sql: TSQLDatabase;
-  lMsg: PUtf8Char;
 begin
   // DLLs extrahieren
   TSQLDatabaseVectorHelper.ExtractLembed0Dll;
   TSQLDatabaseVectorHelper.ExtractVec0Dll;  // oder ExtractVectorDll
   
   sql := TSQLDatabase.Create('mydb.db', '');
-  sqlite3.db_config(sql.DB, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1);
+  TSQLDatabaseVectorHelper.EnableExtensionLoading(sql.DB);
   
   // Extensions laden
-  sqlite3.load_extension(sql.DB, 'lembed0.dll', nil, lMsg);
-  sqlite3.load_extension(sql.DB, 'vec0.dll', nil, lMsg);  // oder vector.dll
+  TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'lembed0.dll');
+  TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vec0.dll');  // oder vector.dll
   
   // Modell registrieren
   sql.Execute(
@@ -62,9 +61,11 @@ aStmt.Prepare(sql.DB,
   'FROM vec_docs v ' +
   'JOIN docs d ON d.id = v.rowid ' +
   'WHERE v.embedding MATCH lembed(''model'', ?) ' +
-  'ORDER BY v.distance LIMIT 10;'
+  '  AND k = ? ' +
+  'ORDER BY v.distance;'
 );
 aStmt.Bind(1, 'search query');
+aStmt.Bind(2, 10);
 ```
 
 ### Vollständige Klasse
@@ -216,7 +217,8 @@ SELECT vector_quantize_preload('tablename', 'columnname');
 SELECT rowid, distance 
 FROM vec_data
 WHERE embedding MATCH lembed('model', 'query')
-ORDER BY distance LIMIT 10;
+  AND k = 10
+ORDER BY distance;
 ```
 
 ### Suchen (vector quantisiert)
@@ -249,6 +251,7 @@ SELECT vector_init('data', 'embedding', 'type=FLOAT32,dimension=384,distance=COS
 |--------|-------------|------|
 | all-MiniLM-L6-v2 | 384 | `float[384]` |
 | nomic-embed-text-v1.5 | 768 | `float[768]` |
+| BGE-M3 | 1024 | `float[1024]` |
 | mxbai-embed-large-v1 | 1024 | `float[1024]` |
 
 **Wichtig:** Vector-Tabelle muss Modell-Dimensionen entsprechen!
@@ -279,10 +282,10 @@ sql.Execute('CREATE VIRTUAL TABLE vec USING vec0(embedding float[384]);');
 ### "No such function: vector_quantize"
 ```pascal
 // Falsch: vec0.dll geladen (hat keine Quantisierung)
-sqlite3.load_extension(sql.DB, 'vec0.dll', nil, lMsg);
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vec0.dll');
 
 // Richtig: vector.dll laden
-sqlite3.load_extension(sql.DB, 'vector.dll', nil, lMsg);
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vector.dll');
 ```
 
 ---
@@ -296,7 +299,7 @@ sqlite3.load_extension(sql.DB, 'vector.dll', nil, lMsg);
 - [ ] Preload aktiviert? (bei großen Daten)
 - [ ] Batch-Inserts statt einzeln?
 - [ ] Indizes auf Filter-Spalten?
-- [ ] LIMIT in Queries?
+- [ ] `k = ?` oder LIMIT in vec0-KNN-Queries?
 
 ### Optimierungen
 

@@ -8,12 +8,29 @@ Semantische Suche in deutschen Dokumenten/Produkten mit SQLite und Delphi.
 
 ## 📥 Schritt 1: Modell herunterladen (2 Min)
 
-### Empfehlung: Nomic Embed Text v1.5
+### Empfehlung: BGE-M3
 
 **Warum?**
-- ✅ Sehr gut für Deutsch
-- ✅ Mittlere Größe (~275 MB)
-- ✅ Gute Performance
+- ✅ Sehr gut für Deutsch und 100+ Sprachen
+- ✅ Sehr gute Cross-Language-Suche
+- ✅ Lange Texte bis 8192 Token
+- ✅ Beste lokale Wahl, wenn Qualität wichtiger als Dateigröße ist
+
+**Download:**
+```
+https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF
+```
+
+**Speichern als:**
+```
+C:\Projekte\MeinProjekt\bge-m3-Q8_0.gguf
+```
+
+### Alternative: Gute Balance
+
+**Nomic Embed Text v1.5** (~275 MB Q8_0)
+- ✅ Gut für Deutsch
+- ✅ Kleiner und schneller als BGE-M3
 - ✅ Bis 8k Token Context
 
 **Download:**
@@ -26,12 +43,14 @@ https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-em
 C:\Projekte\MeinProjekt\nomic-embed-text-v1.5.Q8_0.gguf
 ```
 
-### Alternative: Beste Qualität (größer)
+### Alternative: Starkes Dense Retrieval
 
 **mxbai-embed-large-v1** (~650 MB)
 ```
 https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1/resolve/main/gguf/mxbai-embed-large-v1-Q8_0.gguf
 ```
+
+Hinweis: `mxbai-embed-large-v1` ist besonders stark für klassische RAG-/Retrieval-Setups, aber primär englisch fokussiert. Für reine deutsche oder cross-linguale Suche zuerst BGE-M3 testen.
 
 ### Alternative: Kleineres Modell (schneller)
 
@@ -81,10 +100,10 @@ var
 begin
   Search := TProductSemanticSearch.Create('produkte.db');
   try
-    // 1. Modell laden (768 Dimensionen für Nomic!)
+    // 1. Modell laden (1024 Dimensionen für BGE-M3!)
     Search.Initialize(
-      ExtractFilePath(Application.ExeName) + 'nomic-embed-text-v1.5.Q8_0.gguf',
-      'nomic'
+      ExtractFilePath(Application.ExeName) + 'bge-m3-Q8_0.gguf',
+      'bge-m3'
     );
     
     // 2. Deutsche Produkte hinzufügen
@@ -148,8 +167,8 @@ begin
   try
     // 1. Modell laden
     Search.Initialize(
-      'nomic-embed-text-v1.5.Q8_0.gguf',
-      'nomic'
+      'bge-m3-Q8_0.gguf',
+      'bge-m3'
     );
     
     // 2. Deutsche Dokumente hinzufügen
@@ -254,6 +273,9 @@ for Item in Similar do
 ### Wichtig: Vector-Tabelle muss passen!
 
 ```pascal
+// BGE-M3 = 1024 Dimensionen
+sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
+
 // Nomic v1.5 = 768 Dimensionen
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[768]);');
 
@@ -382,6 +404,7 @@ dimension mismatch
 ✅ **Lösung:**
 ```pascal
 // Prüfe Modell-Dimensionen:
+// BGE-M3 = 1024
 // Nomic = 768
 // mxbai = 1024
 // all-MiniLM = 384
@@ -394,10 +417,10 @@ sql.Execute('CREATE VIRTUAL TABLE vec USING vec0(embedding float[768]);');
 
 ❌ **Problem:** all-MiniLM-L6-v2 funktioniert nicht gut für Deutsch
 
-✅ **Lösung:** Nutze Nomic oder mxbai:
+✅ **Lösung:** Nutze BGE-M3 oder Nomic:
 ```pascal
 // Statt all-MiniLM:
-Search.Initialize('nomic-embed-text-v1.5.Q8_0.gguf', 'nomic');
+Search.Initialize('bge-m3-Q8_0.gguf', 'bge-m3');
 ```
 
 ---
@@ -427,7 +450,7 @@ ORDER BY distance;
 
 4. **Multi-Language:**
 ```pascal
-// Nomic v1.5 unterstützt 100+ Sprachen
+// BGE-M3 unterstützt 100+ Sprachen
 Search.AddProduct('Laptop', 'English description', ...);
 Search.AddProduct('Ordinateur', 'Description français', ...);
 Search.AddProduct('Laptop', 'Deutsche Beschreibung', ...);

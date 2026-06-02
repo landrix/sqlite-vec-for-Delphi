@@ -38,6 +38,8 @@ Konsolen-Demo mit:
 https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-MiniLM-L6-v2/all-MiniLM-L6-v2.e4ce9877.q8_0.gguf
 ```
 
+Für deutsche oder mehrsprachige Produktdaten zuerst BGE-M3 (1024 Dimensionen) oder Nomic v1.5 (768 Dimensionen) testen. Siehe [../../EMBEDDING_MODELS_GUIDE.md](../../EMBEDDING_MODELS_GUIDE.md).
+
 2. **DLLs:**
 - `lembed0.dll` (aus `lib\sqlite-lembed\`)
 - `vector.dll` (aus `lib\sqlite-vector\`)
@@ -246,7 +248,7 @@ Search.PreloadQuantized;
 // Bei Initialize():
 FDatabase.Execute(
   'SELECT vector_init(''products'', ''embedding'', ' +
-  '''type=FLOAT32,dimension=384,distance=COSINE'');'  // COSINE statt L2
+  '''type=FLOAT32,dimension=1024,distance=COSINE'');'  // 1024 = BGE-M3/mxbai, COSINE statt L2
 );
 ```
 
@@ -279,7 +281,7 @@ Verfügbare Metriken:
 sql.Execute('CREATE VIRTUAL TABLE vec_data USING vec0(embedding float[384]);');
 
 // Direkt suchen
-sql.Execute('SELECT rowid FROM vec_data WHERE embedding MATCH ? LIMIT 10;');
+sql.Execute('SELECT rowid FROM vec_data WHERE embedding MATCH ? AND k = 10;');
 ```
 
 **vector.dll (performant):**
@@ -310,7 +312,11 @@ sql.Execute('SELECT * FROM data JOIN vector_quantize_scan(...) ON id = rowid;');
 → Vergessen `PreloadQuantized()` aufzurufen?
 
 ### "Dimension mismatch"
-→ Vector-Init muss Modell-Dimensionen entsprechen (384 für all-MiniLM-L6-v2).
+→ Vector-Init muss Modell-Dimensionen entsprechen:
+- all-MiniLM-L6-v2: 384
+- nomic-embed-text-v1.5: 768
+- BGE-M3: 1024
+- mxbai-embed-large-v1: 1024
 
 ### Speicher-Warnung bei PreloadQuantized
 → Normal bei großen Datenmengen. Embeddings werden in RAM geladen.

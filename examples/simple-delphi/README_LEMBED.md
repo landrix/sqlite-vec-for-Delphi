@@ -85,7 +85,8 @@ https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-Mini
 |--------|------------|-------|----------|----------|
 | all-MiniLM-L6-v2 | 384 | 22 MB | Gut | [Link](https://huggingface.co/asg017/sqlite-lembed-model-examples/tree/main/all-MiniLM-L6-v2) |
 | nomic-embed-text-v1.5 | 768 | ~500 MB | Sehr gut | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF) |
-| mxbai-embed-large-v1 | 1024 | ~1 GB | Exzellent | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) |
+| BGE-M3 | 1024 | je nach GGUF | Exzellent für Deutsch/Multilingual | [Link](https://huggingface.co/gpustack/bge-m3-GGUF) |
+| mxbai-embed-large-v1 | 1024 | ~650 MB | Sehr gut für Dense Retrieval | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) |
 
 ### 2. DLL-Dateien
 
@@ -164,6 +165,7 @@ VALUES (1, lembed('model', 'Hello World'));
 ```pascal
 // Finde ähnliche Vektoren
 WHERE embedding MATCH lembed('model', 'Hi there')
+  AND k = 10
 // Vergleicht den Query-Vektor mit allen gespeicherten Vektoren
 // Gibt die ähnlichsten zurück (niedrigste Distance)
 ```
@@ -230,8 +232,9 @@ Results := Search.Search('query', 10);  // Schneller!
 
 ### 3. Modell-Wahl
 - **Kleine Datenmengen (<10k Docs)**: all-MiniLM-L6-v2
-- **Mittlere Datenmengen**: nomic-embed-text-v1.5
-- **Große Datenmengen + Qualität**: mxbai-embed-large-v1
+- **Deutsche/multilinguale Daten**: BGE-M3
+- **Gute Balance aus Qualität und Größe**: nomic-embed-text-v1.5
+- **Klassisches Dense Retrieval/RAG**: mxbai-embed-large-v1
 
 ### 4. Quantisierte Modelle
 Nutze `.Q8_0` oder `.Q4_0` Versionen für schnellere Generierung:
@@ -252,6 +255,7 @@ Search.Initialize('C:\models\all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'model');
 // Vector-Tabelle muss Modell-Dimensionen entsprechen:
 // all-MiniLM-L6-v2 = 384
 // nomic-1.5 = 768
+// BGE-M3 = 1024
 // mxbai-large = 1024
 
 // Falsch:

@@ -26,6 +26,8 @@ https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-Mini
 - **Sprache**: Englisch
 - **Qualität**: Gut für allgemeine semantische Suche
 
+Für deutsche oder mehrsprachige Daten ist `all-MiniLM-L6-v2` nur ein schnelles Demo-Modell. Bessere lokale Optionen sind `BGE-M3` (1024 Dimensionen) oder `nomic-embed-text-v1.5` (768 Dimensionen). Siehe [EMBEDDING_MODELS_GUIDE.md](EMBEDDING_MODELS_GUIDE.md).
+
 Speichere die `.gguf` Datei im Programmverzeichnis oder einem bekannten Pfad.
 
 ## Workflow
@@ -41,11 +43,11 @@ TSQLDatabaseVectorHelper.ExtractVec0Dll;
 sql := TSQLDatabase.Create('mydb.db', '');
 
 // Extension loading aktivieren
-sqlite3.db_config(sql.DB, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1);
+TSQLDatabaseVectorHelper.EnableExtensionLoading(sql.DB);
 
 // Extensions laden
-sqlite3.load_extension(sql.DB, 'lembed0.dll', nil, lMsg);
-sqlite3.load_extension(sql.DB, 'vec0.dll', nil, lMsg);
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'lembed0.dll');
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vec0.dll');
 ```
 
 ### Schritt 2: Embedding-Modell registrieren
@@ -96,14 +98,15 @@ aStmt.Prepare(sql.DB,
   '  SELECT rowid, distance ' +
   '  FROM vec_documents ' +
   '  WHERE content_embedding MATCH lembed(''all-MiniLM-L6-v2'', ?) ' +
+  '    AND k = ? ' +
   '  ORDER BY distance ' +
-  '  LIMIT 10 ' +
   ') ' +
   'SELECT documents.content, matches.distance ' +
   'FROM matches ' +
   'LEFT JOIN documents ON documents.id = matches.rowid;'
 );
 aStmt.Bind(1, 'Suchbegriff hier');
+aStmt.Bind(2, 10);
 
 while aStmt.Step = SQLITE_ROW do
 begin
@@ -122,9 +125,9 @@ begin
   sql := TSQLDatabase.Create('articles.db', '');
   try
     // Extensions laden
-    sqlite3.db_config(sql.DB, SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1);
-    sqlite3.load_extension(sql.DB, 'lembed0.dll', nil, nil);
-    sqlite3.load_extension(sql.DB, 'vec0.dll', nil, nil);
+    TSQLDatabaseVectorHelper.EnableExtensionLoading(sql.DB);
+    TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'lembed0.dll');
+    TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vec0.dll');
 
     // Modell registrieren
     sql.Execute(
@@ -155,7 +158,8 @@ begin
       'WITH matches AS ( ' +
       '  SELECT rowid, distance FROM vec_articles ' +
       '  WHERE embedding MATCH lembed(''miniLM'', ''artificial intelligence'') ' +
-      '  ORDER BY distance LIMIT 5 ' +
+      '    AND k = 5 ' +
+      '  ORDER BY distance ' +
       ') ' +
       'SELECT a.headline, m.distance ' +
       'FROM matches m JOIN articles a ON a.id = m.rowid;'
@@ -176,7 +180,7 @@ end;
 Für Produktionsumgebungen mit großen Datensätzen kannst du auch `vector.dll` (sqlite-vector) verwenden:
 
 ```pascal
-sqlite3.load_extension(sql.DB, 'vector.dll', nil, lMsg);
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vector.dll');
 
 // Tabelle erstellen
 sql.Execute('CREATE TABLE images(id INTEGER PRIMARY KEY, embedding BLOB, label TEXT);');
@@ -230,7 +234,24 @@ Enthält:
 
 ### Schnellübersicht Beliebte Modelle
 
-#### Nomic Embed Text v1.5 ⭐ (Empfohlen für Deutsch)
+#### BGE-M3 ⭐ (Beste lokale Wahl für Deutsch/Multilingual)
+- **Download**: https://huggingface.co/gpustack/bge-m3-GGUF
+- **Q8_0**: https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF
+- **Dimensionen**: 1024
+- **Sprachen**: 100+ inkl. Deutsch
+- **Vorteile**: Sehr gute Deutsch- und Cross-Language-Qualität, bis 8192 Token
+
+```pascal
+sql.Execute(
+  'INSERT INTO temp.lembed_models(name, model) ' +
+  'SELECT ''bge-m3'', lembed_model_from_file(''bge-m3-Q8_0.gguf'');'
+);
+
+// Vector-Tabelle mit 1024 Dimensionen
+sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
+```
+
+#### Nomic Embed Text v1.5 (gute Balance für Deutsch)
 - **Download**: https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF
 - **Dimensionen**: 768
 - **Sprachen**: Multilingual (100+) inkl. Deutsch
@@ -246,10 +267,12 @@ sql.Execute(
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[768]);');
 ```
 
-#### MixedBread AI Large (Beste Qualität für Deutsch)
+#### MixedBread AI Large (starkes Dense Retrieval)
 - **Download**: https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
 - **Dimensionen**: 1024
-- **Vorteile**: State-of-the-art Qualität, exzellent für deutsche Texte
+- **Vorteile**: Sehr stark für klassisches RAG, besonders englische oder gemischte Daten
+
+Für reine deutsche oder cross-linguale Suche ist BGE-M3 meistens die robustere lokale Wahl. Für ein speziell deutsches Mixedbread-Modell siehe `mixedbread-ai/deepset-mxbai-embed-de-large-v1` (für `sqlite-lembed` ggf. erst zu GGUF konvertieren).
 
 ## Best Practices
 
@@ -293,6 +316,8 @@ CREATE VIRTUAL TABLE vec_data USING vec0(
 - Vector-Tabelle muss Modell-Dimensionen entsprechen
 - all-MiniLM-L6-v2: 384
 - nomic-1.5: 768
+- BGE-M3: 1024
+- mxbai-large: 1024
 
 ### Langsame Performance
 - GPU-Unterstützung: Kompiliere lembed0.dll mit CUDA/Metal

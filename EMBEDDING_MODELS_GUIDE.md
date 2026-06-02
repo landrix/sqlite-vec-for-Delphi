@@ -92,8 +92,9 @@ sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[768]);');
 **Eigenschaften:**
 - **Dimensionen:** 1024
 - **Größe:** ~650 MB (Q8_0)
-- **Sprache:** Multilingual (sehr gut für Deutsch)
-- **Qualität:** Exzellent (State-of-the-art)
+- **Sprache:** Primär Englisch; für Deutsch in der Praxis brauchbar, aber nicht die stärkste Wahl
+- **Qualität:** Exzellent für Retrieval/RAG, besonders mit Query-Prompt
+- **Context:** Typisch kurze bis mittlere Passagen
 
 **Download:**
 ```
@@ -109,9 +110,71 @@ sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
 ```
 
 **Best für:**
-- ✅ **Beste Qualität für Deutsch**
-- ✅ Kritische Anwendungen
+- ✅ Sehr gute allgemeine Retrieval-Qualität
+- ✅ RAG mit englischen oder gemischten Daten
 - ✅ Wenn Genauigkeit wichtiger als Speed
+
+**Hinweis für Query-Prompts:**
+Für Suchanfragen empfiehlt Mixedbread einen Prefix wie:
+```
+Represent this sentence for searching relevant passages: <query>
+```
+Dokumenttexte werden normalerweise ohne Prefix eingebettet.
+
+**Vergleich zu BGE-M3:**
+- `mxbai-embed-large-v1` ist kompakter und auf klassischen Dense Retrieval/RAG sehr stark.
+- Für reine deutsche oder cross-linguale Suche ist BGE-M3 meistens die robustere Wahl.
+- Für ein deutsches Mixedbread-Modell ist `mixedbread-ai/deepset-mxbai-embed-de-large-v1` interessanter, benötigt für `sqlite-lembed` aber eine passende GGUF-Konvertierung.
+
+---
+
+#### 4. BGE-M3 (Multilingual + Long Context)
+
+**Eigenschaften:**
+- **Dimensionen:** 1024
+- **Größe:** ca. 2.3 GB als HF-Modell; GGUF je nach Quantisierung deutlich kleiner
+- **Sprache:** Multilingual, 100+ Sprachen inkl. Deutsch
+- **Qualität:** Sehr gut für deutsche, multilinguale und cross-linguale Suche
+- **Context:** Bis 8192 Token
+- **Funktionen:** Dense Retrieval, Sparse Retrieval und Multi-Vector/ColBERT-artige Repräsentationen
+
+**Download:**
+```
+# Modellkarte
+https://huggingface.co/BAAI/bge-m3
+
+# GGUF-Varianten
+https://huggingface.co/gpustack/bge-m3-GGUF
+https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF
+```
+
+**Verwendung:**
+```pascal
+Search.Initialize('bge-m3-Q8_0.gguf', 'bge-m3');
+
+// Vector-Tabelle (1024 Dimensionen!)
+sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
+```
+
+**Best für:**
+- ✅ **Deutsche Texte**
+- ✅ Mehrsprachige Datenbestände
+- ✅ Cross-Language Search, z.B. deutsche Query gegen englische Dokumente
+- ✅ Lange Dokumente oder Abschnitte
+- ✅ Wenn du später Hybrid Retrieval ergänzen willst
+
+**Vergleich zu mxbai-embed-large-v1:**
+
+| Kriterium | BGE-M3 | mxbai-embed-large-v1 |
+|-----------|--------|----------------------|
+| Dimensionen | 1024 | 1024 |
+| Sprache | 100+ Sprachen, stark multilingual | Primär Englisch, Deutsch brauchbar |
+| Deutsch | Sehr gut | Gut bis sehr gut, abhängig vom Datensatz |
+| Cross-lingual | Sehr gut | Schwächer als BGE-M3 |
+| Lange Texte | Bis 8192 Token | Eher kurze/mittlere Retrieval-Passagen |
+| Retrieval-Typen | Dense + Sparse + Multi-Vector | Dense, Matryoshka/Binary-Support |
+| sqlite-vec Nutzung | Dense-Vektor direkt nutzbar | Dense-Vektor direkt nutzbar |
+| Empfehlung | Deutsch/multilingual/long-context | Klassisches RAG, besonders Englisch |
 
 ---
 
@@ -192,8 +255,9 @@ https://huggingface.co/sentence-transformers/distiluse-base-multilingual-cased-v
 
 | Modell | Dim | Sprachen | Download | Deutsch-Qualität |
 |--------|-----|----------|----------|------------------|
+| **BGE-M3** | 1024 | 100+ | [Link](https://huggingface.co/gpustack/bge-m3-GGUF) | ⭐⭐⭐⭐⭐ |
 | **nomic-embed-text-v1.5** | 768 | 100+ | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF) | ⭐⭐⭐⭐ |
-| **mxbai-embed-large-v1** | 1024 | Multilingual | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) | ⭐⭐⭐⭐⭐ |
+| **mxbai-embed-large-v1** | 1024 | Primär Englisch | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1) | ⭐⭐⭐⭐ |
 | **multilingual-e5-large** | 1024 | 100+ | [Link](https://huggingface.co/intfloat/multilingual-e5-large) | ⭐⭐⭐⭐ |
 | **LaBSE** | 768 | 109 | [Link](https://huggingface.co/sentence-transformers/LaBSE) | ⭐⭐⭐ |
 
@@ -216,7 +280,7 @@ ollama pull all-minilm
 
 **Verfügbare Embedding-Modelle:**
 - `nomic-embed-text` - 768 Dimensionen, multilingual
-- `mxbai-embed-large` - 1024 Dimensionen, beste Qualität
+- `mxbai-embed-large` - 1024 Dimensionen, starkes Dense Retrieval
 - `all-minilm` - 384 Dimensionen, schnell
 - `snowflake-arctic-embed` - 1024 Dimensionen, performant
 
@@ -492,11 +556,12 @@ https://api.jina.ai/v1/embeddings
 
 | Rang | Modell | Dimensionen | Größe | Verfügbarkeit | Qualität |
 |------|--------|-------------|-------|---------------|----------|
-| 🥇 | **mxbai-embed-large-v1** | 1024 | 650 MB | GGUF | ⭐⭐⭐⭐⭐ |
-| 🥈 | **nomic-embed-text-v1.5** | 768 | 275 MB | GGUF | ⭐⭐⭐⭐ |
-| 🥉 | **OpenAI text-embedding-3** | 1536 | API | Cloud | ⭐⭐⭐⭐⭐ |
-| 4 | **Cohere embed-multilingual-v3** | 1024 | API | Cloud | ⭐⭐⭐⭐⭐ |
-| 5 | **multilingual-e5-large** | 1024 | ~2 GB | HF* | ⭐⭐⭐⭐ |
+| 🥇 | **BGE-M3** | 1024 | je nach GGUF | GGUF | ⭐⭐⭐⭐⭐ |
+| 🥈 | **mxbai-embed-large-v1** | 1024 | 650 MB | GGUF | ⭐⭐⭐⭐ |
+| 🥉 | **nomic-embed-text-v1.5** | 768 | 275 MB | GGUF | ⭐⭐⭐⭐ |
+| 4 | **OpenAI text-embedding-3** | 1536 | API | Cloud | ⭐⭐⭐⭐⭐ |
+| 5 | **Cohere embed-multilingual-v3** | 1024 | API | Cloud | ⭐⭐⭐⭐⭐ |
+| 6 | **multilingual-e5-large** | 1024 | ~2 GB | HF* | ⭐⭐⭐⭐ |
 
 *HF = HuggingFace (Konvertierung zu GGUF nötig)
 
@@ -505,15 +570,15 @@ https://api.jina.ai/v1/embeddings
 ### Nach Anwendungsfall
 
 #### 📝 Allgemeine Dokumentensuche (Deutsch)
-**Empfehlung:** nomic-embed-text-v1.5 (Q8_0)
-- Gute Balance (Qualität/Größe)
+**Empfehlung:** BGE-M3 (Q8_0) oder nomic-embed-text-v1.5 (Q8_0)
+- BGE-M3: beste lokale Wahl für Qualität, multilingual und längere Texte
+- Nomic: bessere Balance aus Qualität, Größe und Speed
 - Lokal & offline
-- Schnell genug
 
 #### 🛒 E-Commerce / Produktsuche (Deutsch)
-**Empfehlung:** mxbai-embed-large-v1 + Quantisierung
-- Beste Qualität
-- Produktbeschreibungen gut erfasst
+**Empfehlung:** BGE-M3 oder mxbai-embed-large-v1 + Quantisierung
+- BGE-M3 für deutsche/multilinguale Produktdaten
+- mxbai für klassische Dense-Retrieval-Setups und englische Produktdaten
 - Mit Quantisierung schnell genug
 
 #### 💼 Enterprise / Kritisch (Deutsch)
@@ -536,9 +601,10 @@ https://api.jina.ai/v1/embeddings
 - Praktisch einsetzbar
 
 #### 🌍 Multilingual (viele Sprachen)
-**Empfehlung:** nomic-embed-text-v1.5
+**Empfehlung:** BGE-M3
 - 100+ Sprachen
-- Gute Deutsch-Qualität
+- Sehr gute Deutsch- und Cross-Language-Qualität
+- Lange Texte bis 8192 Token
 - Lokal verfügbar
 
 ---
@@ -551,6 +617,7 @@ https://api.jina.ai/v1/embeddings
 |--------|------|-------|------|
 | all-MiniLM-L6-v2 (Q8) | ~45s | ⭐⭐⭐⭐⭐ | Optional |
 | nomic-v1.5 (Q8) | ~2.5min | ⭐⭐⭐⭐ | Optional |
+| BGE-M3 (Q8) | ~4-6min | ⭐⭐⭐ | Empfohlen |
 | mxbai-large (Q8) | ~4min | ⭐⭐⭐ | Empfohlen |
 | OpenAI API | ~30s | ⭐⭐⭐⭐⭐ | - |
 | Ollama (GPU) | ~1min | ⭐⭐⭐⭐⭐ | Ja |
@@ -658,9 +725,9 @@ Benötigst du Multimodal (Bilder)?
 Offline/Lokal notwendig?
 ├─ Ja → GGUF-Modelle
 │   └─ Primär Deutsch?
-│       ├─ Ja, beste Qualität → mxbai-embed-large-v1 (1024 Dim)
+│       ├─ Ja, beste Qualität → BGE-M3 (1024 Dim)
 │       ├─ Ja, gute Balance → nomic-embed-text-v1.5 (768 Dim)
-│       └─ Multilingual → nomic-embed-text-v1.5
+│       └─ Multilingual/Cross-Language → BGE-M3
 │
 └─ Nein (Cloud OK) → API-Modelle
     └─ Budget?
@@ -680,6 +747,8 @@ Offline/Lokal notwendig?
 | all-MiniLM-L6-v2 | 384 | [Link](https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-MiniLM-L6-v2/all-MiniLM-L6-v2.e4ce9877.q8_0.gguf) |
 | nomic-v1.5 (Q8) | 768 | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-embed-text-v1.5.Q8_0.gguf) |
 | nomic-v1.5 (Q4) | 768 | [Link](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-embed-text-v1.5.Q4_0.gguf) |
+| BGE-M3 (GGUF) | 1024 | [Link](https://huggingface.co/gpustack/bge-m3-GGUF) |
+| BGE-M3 (Q8) | 1024 | [Link](https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF) |
 | mxbai-large (Q8) | 1024 | [Link](https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1/resolve/main/gguf/mxbai-embed-large-v1-Q8_0.gguf) |
 
 ### API-Services
@@ -726,8 +795,9 @@ python convert-hf-to-gguf.py \
 
 ### Für deutsche Anwendungen
 
-1. **Nutze nomic-v1.5 oder mxbai als Standard**
-   - Beste Balance für Deutsch
+1. **Nutze BGE-M3 oder nomic-v1.5 als Standard**
+   - BGE-M3 für beste lokale Deutsch-/Multilingual-Qualität
+   - Nomic-v1.5 für bessere Balance aus Größe und Geschwindigkeit
    - Lokal & offline
    - Gute Qualität
 

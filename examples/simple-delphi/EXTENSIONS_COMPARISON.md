@@ -40,7 +40,8 @@ sql.Execute(
 sql.Execute(
   'SELECT rowid, distance FROM vec_docs ' +
   'WHERE embedding MATCH lembed(''model'', ?) ' +
-  'ORDER BY distance LIMIT 10;'
+  '  AND k = ? ' +
+  'ORDER BY distance;'
 );
 ```
 
@@ -147,7 +148,8 @@ end;
 **Code-Beispiel:**
 ```pascal
 // Nur vector.dll laden
-sqlite3.load_extension(sql.DB, 'vector.dll', nil, lMsg);
+TSQLDatabaseVectorHelper.EnableExtensionLoading(sql.DB);
+TSQLDatabaseVectorHelper.LoadExtension(sql.DB, 'vector.dll');
 
 // Tabelle mit manuellen Vektoren
 sql.Execute('CREATE TABLE images(id INTEGER PRIMARY KEY, embedding BLOB, label TEXT);');
@@ -264,7 +266,8 @@ sql.Execute(
 sql.Execute(
   'SELECT rowid, distance FROM vec_data ' +
   'WHERE embedding MATCH lembed(''model'', ?) ' +
-  'ORDER BY distance LIMIT 10;'
+  '  AND k = ? ' +
+  'ORDER BY distance;'
 );
 ```
 

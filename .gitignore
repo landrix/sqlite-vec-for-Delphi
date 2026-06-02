@@ -26,8 +26,15 @@
 #*.obj
 #
 
-
+lib/synopse2
+lib/sqlite-vector
+lib-source
 Win64
+
+GPATH
+GRTAGS
+GTAGS
+.vscode/GTEMP.pas
 
 *.WinMerge
 # Delphi compiler-generated binaries (safe to delete)
