@@ -31,6 +31,8 @@ lib/sqlite-vector
 lib-source/sqlite-vector
 lib-source/.build/
 Win64
+examples/fpc/bin/
+examples/fpc/*.db
 
 GPATH
 GRTAGS
