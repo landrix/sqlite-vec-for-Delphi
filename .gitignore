@@ -28,10 +28,8 @@
 
 lib/synopse2
 lib/sqlite-vector
-lib-source/*
-!lib-source/
-!lib-source/update.ps1
-!lib-source/sqlite-lembed
+lib-source/sqlite-vec
+lib-source/sqlite-vector
 Win64
 
 GPATH
