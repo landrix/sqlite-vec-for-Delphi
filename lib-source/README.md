@@ -5,11 +5,12 @@ when rebuilding the native SQLite extensions.
 
 ## Submodules
 
-`sqlite-lembed` and `sqlite-vec` are tracked as Git submodules:
+`sqlite-lembed`, `sqlite-vec`, and `mORMot2` are tracked as Git submodules:
 
 ```text
 lib-source/sqlite-lembed -> https://github.com/landrix/sqlite-lembed.git
 lib-source/sqlite-vec    -> https://github.com/landrix/sqlite-vec.git
+lib-source/mORMot2       -> https://github.com/synopse/mORMot2.git
 ```
 
 `sqlite-lembed` also contains nested submodules, including `vendor/llama.cpp`.
@@ -20,10 +21,24 @@ Initialize or refresh everything from the repository root with:
 powershell -ExecutionPolicy Bypass -File lib-source/update.ps1
 ```
 
-To only initialize submodules without pulling a newer `sqlite-lembed` commit:
+By default this updates:
+
+```text
+sqlite-lembed -> origin/main
+sqlite-vec    -> origin/main
+mORMot2       -> origin/master
+```
+
+To only initialize submodules without pulling newer commits:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File lib-source/update.ps1 -NoPull
+```
+
+The branch names can be overridden when needed:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/update.ps1 -Branch main -SqliteVecBranch main -MormotBranch master
 ```
 
 For a fresh clone, this is equivalent to:

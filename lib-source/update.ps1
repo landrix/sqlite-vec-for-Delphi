@@ -1,5 +1,7 @@
 param(
   [string] $Branch = "main",
+  [string] $SqliteVecBranch = "main",
+  [string] $MormotBranch = "master",
   [switch] $NoPull
 )
 
@@ -7,7 +9,27 @@ $ErrorActionPreference = "Stop"
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent $ScriptDir
-$LembedDir = Join-Path $ScriptDir "sqlite-lembed"
+
+$Submodules = @(
+  @{
+    Name = "sqlite-lembed"
+    Path = Join-Path $ScriptDir "sqlite-lembed"
+    Branch = $Branch
+    Recursive = $true
+  },
+  @{
+    Name = "sqlite-vec"
+    Path = Join-Path $ScriptDir "sqlite-vec"
+    Branch = $SqliteVecBranch
+    Recursive = $false
+  },
+  @{
+    Name = "mORMot2"
+    Path = Join-Path $ScriptDir "mORMot2"
+    Branch = $MormotBranch
+    Recursive = $false
+  }
+)
 
 function Invoke-Git {
   param(
@@ -41,23 +63,31 @@ Write-Host "Repository: $RepoRoot"
 Write-Host "Initializing submodules..."
 Invoke-Git -Arguments @("submodule", "update", "--init", "--recursive")
 
-if (-not (Test-Path $LembedDir)) {
-  throw "sqlite-lembed submodule not found: $LembedDir"
+foreach ($submodule in $Submodules) {
+  if (-not (Test-Path $submodule.Path)) {
+    throw "$($submodule.Name) submodule not found: $($submodule.Path)"
+  }
 }
 
 if (-not $NoPull) {
-  if (-not (Test-CleanGitWorktree -WorkingDirectory $LembedDir)) {
-    throw "sqlite-lembed has local changes. Commit, stash, or run with -NoPull."
-  }
+  foreach ($submodule in $Submodules) {
+    if (-not (Test-CleanGitWorktree -WorkingDirectory $submodule.Path)) {
+      throw "$($submodule.Name) has local changes. Commit, stash, or run with -NoPull."
+    }
 
-  Write-Host "Updating sqlite-lembed from origin/$Branch..."
-  Invoke-Git -WorkingDirectory $LembedDir -Arguments @("fetch", "origin", $Branch)
-  Invoke-Git -WorkingDirectory $LembedDir -Arguments @("checkout", $Branch)
-  Invoke-Git -WorkingDirectory $LembedDir -Arguments @("pull", "--ff-only", "origin", $Branch)
+    Write-Host "Updating $($submodule.Name) from origin/$($submodule.Branch)..."
+    Invoke-Git -WorkingDirectory $submodule.Path -Arguments @("fetch", "origin", $submodule.Branch)
+    Invoke-Git -WorkingDirectory $submodule.Path -Arguments @("checkout", $submodule.Branch)
+    Invoke-Git -WorkingDirectory $submodule.Path -Arguments @("pull", "--ff-only", "origin", $submodule.Branch)
+  }
 }
 
 Write-Host "Updating nested submodules..."
-Invoke-Git -WorkingDirectory $LembedDir -Arguments @("submodule", "update", "--init", "--recursive")
+foreach ($submodule in $Submodules) {
+  if ($submodule.Recursive) {
+    Invoke-Git -WorkingDirectory $submodule.Path -Arguments @("submodule", "update", "--init", "--recursive")
+  }
+}
 
 Write-Host ""
 Write-Host "Current submodule status:"
