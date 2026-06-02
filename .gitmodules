@@ -4,3 +4,6 @@
 [submodule "lib-source/sqlite-lembed"]
 	path = lib-source/sqlite-lembed
 	url = https://github.com/landrix/sqlite-lembed.git
+[submodule "lib-source/sqlite-vec"]
+	path = lib-source/sqlite-vec
+	url = https://github.com/landrix/sqlite-vec.git
