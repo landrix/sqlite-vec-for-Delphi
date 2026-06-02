@@ -28,7 +28,6 @@
 
 lib/synopse2
 lib/sqlite-vector
-lib-source/sqlite-vec
 lib-source/sqlite-vector
 Win64
 
