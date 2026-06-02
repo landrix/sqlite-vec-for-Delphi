@@ -16,6 +16,7 @@ type
     FDatabase: TSQLDatabase;
     FModelName: string;
     FModelPath: string;
+    FEmbeddingDimensions: Integer;
     FInitialized: Boolean;
     procedure LoadExtensions;
     procedure RegisterModel;
@@ -26,7 +27,8 @@ type
     /// <summary>
     /// Initialisiert die Datenbank mit Tabellen und Modell
     /// </summary>
-    procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder');
+    procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder';
+      AEmbeddingDimensions: Integer = 384);
     
     /// <summary>
     /// Fügt ein Dokument hinzu und generiert automatisch das Embedding
@@ -65,6 +67,7 @@ constructor TSemanticDocumentSearch.Create(const ADBPath: string);
 begin
   inherited Create;
   FDatabase := TSQLDatabase.Create(ADBPath, '');
+  FEmbeddingDimensions := 384;
   FInitialized := False;
 end;
 
@@ -103,7 +106,15 @@ begin
   try
     lStmt.Bind(1, StringToUtf8(FModelName));
     lStmt.Bind(2, StringToUtf8(FModelPath));
-    lStmt.Step;
+    try
+      lStmt.Step;
+    except
+      on E: Exception do
+        raise Exception.CreateFmt(
+          'Modell konnte nicht registriert werden (%s, Datei: %s): %s',
+          [FModelName, FModelPath, E.Message]
+        );
+    end;
   finally
     lStmt.Close;
   end;
@@ -128,16 +139,21 @@ begin
     );
 end;
 
-procedure TSemanticDocumentSearch.Initialize(const AModelPath, AModelName: string);
+procedure TSemanticDocumentSearch.Initialize(const AModelPath, AModelName: string;
+  AEmbeddingDimensions: Integer);
 begin
   if FInitialized then
     Exit;
     
   FModelPath := AModelPath;
   FModelName := AModelName;
+  FEmbeddingDimensions := AEmbeddingDimensions;
 
   if not FileExists(FModelPath) then
     raise Exception.CreateFmt('Modelldatei nicht gefunden: %s', [FModelPath]);
+
+  if FEmbeddingDimensions <= 0 then
+    raise Exception.CreateFmt('Ungültige Embedding-Dimension: %d', [FEmbeddingDimensions]);
   
   // Extensions laden
   LoadExtensions;
@@ -156,10 +172,9 @@ begin
   );
   
   // Vector-Tabelle erstellen (falls nicht vorhanden)
-  // all-MiniLM-L6-v2 verwendet 384 Dimensionen
   FDatabase.Execute(
     'CREATE VIRTUAL TABLE IF NOT EXISTS vec_documents USING vec0(' +
-    '  embedding float[384]' +
+    '  embedding float[' + IntToStr(FEmbeddingDimensions) + ']' +
     ');'
   );
   
@@ -202,7 +217,15 @@ begin
     lStmt.Bind(2, StringToUtf8(FModelName));
     lStmt.Bind(3, StringToUtf8(ATitle));
     lStmt.Bind(4, StringToUtf8(AContent));
-    lStmt.Step;
+    try
+      lStmt.Step;
+    except
+      on E: Exception do
+        raise Exception.CreateFmt(
+          'Embedding konnte nicht erzeugt/gespeichert werden (Modell: %s, Dimensionen: %d): %s',
+          [FModelName, FEmbeddingDimensions, E.Message]
+        );
+    end;
   finally
     lStmt.Close;
   end;
@@ -243,14 +266,22 @@ begin
     lStmt.Bind(2, StringToUtf8(AQuery));
     lStmt.Bind(3, ALimit);
     
-    while lStmt.Step = SQLITE_ROW do
-    begin
-      SetLength(Result, lIndex + 1);
-      Result[lIndex] := FormatUtf8(
-        'ID: % | Title: % | Distance: % | Date: %',
-        [lStmt.FieldInt(0), lStmt.FieldS(1), lStmt.FieldS(3), lStmt.FieldS(4)]
-      );
-      Inc(lIndex);
+    try
+      while lStmt.Step = SQLITE_ROW do
+      begin
+        SetLength(Result, lIndex + 1);
+        Result[lIndex] := FormatUtf8(
+          'ID: % | Title: % | Distance: % | Date: %',
+          [lStmt.FieldInt(0), lStmt.FieldS(1), lStmt.FieldS(3), lStmt.FieldS(4)]
+        );
+        Inc(lIndex);
+      end;
+    except
+      on E: Exception do
+        raise Exception.CreateFmt(
+          'Semantische Suche fehlgeschlagen (Modell: %s, Dimensionen: %d, Limit: %d): %s',
+          [FModelName, FEmbeddingDimensions, ALimit, E.Message]
+        );
     end;
   finally
     lStmt.Close;
@@ -291,14 +322,22 @@ begin
     lStmt.Bind(2, ADocumentId);
     lStmt.Bind(3, ALimit);
     
-    while lStmt.Step = SQLITE_ROW do
-    begin
-      SetLength(Result, lIndex + 1);
-      Result[lIndex] := FormatUtf8(
-        'ID: % | Title: % | Distance: %',
-        [lStmt.FieldInt(0), lStmt.FieldS(1), lStmt.FieldS(2)]
-      );
-      Inc(lIndex);
+    try
+      while lStmt.Step = SQLITE_ROW do
+      begin
+        SetLength(Result, lIndex + 1);
+        Result[lIndex] := FormatUtf8(
+          'ID: % | Title: % | Distance: %',
+          [lStmt.FieldInt(0), lStmt.FieldS(1), lStmt.FieldS(2)]
+        );
+        Inc(lIndex);
+      end;
+    except
+      on E: Exception do
+        raise Exception.CreateFmt(
+          'Aehnlichkeitssuche fehlgeschlagen (Dokument-ID: %d, Limit: %d): %s',
+          [ADocumentId, ALimit, E.Message]
+        );
     end;
   finally
     lStmt.Close;
@@ -361,8 +400,9 @@ begin
     'Statistiken:' + sLineBreak +
     '  Dokumente: %d' + sLineBreak +
     '  Embeddings: %d' + sLineBreak +
-    '  Modell: %s',
-    [lDocCount, lVecCount, FModelName]
+    '  Modell: %s' + sLineBreak +
+    '  Dimensionen: %d',
+    [lDocCount, lVecCount, FModelName, FEmbeddingDimensions]
   );
 end;
 

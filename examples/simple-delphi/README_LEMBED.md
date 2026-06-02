@@ -32,7 +32,7 @@ begin
   Search := TSemanticDocumentSearch.Create('mydb.db');
   try
     // Initialisieren
-    Search.Initialize('model.gguf', 'modelname');
+    Search.Initialize('model.gguf', 'modelname', 384);
     
     // Dokument hinzufügen
     DocId := Search.AddDocument('Titel', 'Inhalt...');
@@ -119,7 +119,7 @@ begin
   Search := TSemanticDocumentSearch.Create('mydb.db');
   try
     // 2. Initialisieren mit Modell
-    Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'embedder');
+    Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'embedder', 384);
     
     // 3. Dokumente hinzufügen
     Search.AddDocument(

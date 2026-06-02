@@ -17,6 +17,7 @@ type
     FDatabase: TSQLDatabase;
     FModelName: string;
     FModelPath: string;
+    FEmbeddingDimensions: Integer;
     FInitialized: Boolean;
     FQuantized: Boolean;
     procedure LoadExtensions;
@@ -28,7 +29,8 @@ type
     /// <summary>
     /// Initialisiert die Datenbank mit Tabellen und Modell
     /// </summary>
-    procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder');
+    procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder';
+      AEmbeddingDimensions: Integer = 384);
     
     /// <summary>
     /// Fügt ein Produkt hinzu und generiert automatisch das Embedding
@@ -89,6 +91,7 @@ constructor TProductSemanticSearch.Create(const ADBPath: string);
 begin
   inherited Create;
   FDatabase := TSQLDatabase.Create(ADBPath, '');
+  FEmbeddingDimensions := 384;
   FInitialized := False;
   FQuantized := False;
 end;
@@ -153,16 +156,21 @@ begin
     );
 end;
 
-procedure TProductSemanticSearch.Initialize(const AModelPath, AModelName: string);
+procedure TProductSemanticSearch.Initialize(const AModelPath, AModelName: string;
+  AEmbeddingDimensions: Integer);
 begin
   if FInitialized then
     Exit;
     
   FModelPath := AModelPath;
   FModelName := AModelName;
+  FEmbeddingDimensions := AEmbeddingDimensions;
 
   if not FileExists(FModelPath) then
     raise Exception.CreateFmt('Modelldatei nicht gefunden: %s', [FModelPath]);
+
+  if FEmbeddingDimensions <= 0 then
+    raise Exception.CreateFmt('Ungültige Embedding-Dimension: %d', [FEmbeddingDimensions]);
   
   // Extensions laden
   LoadExtensions;
@@ -187,10 +195,12 @@ begin
   FDatabase.Execute('CREATE INDEX IF NOT EXISTS idx_prod_category ON products(category);');
   FDatabase.Execute('CREATE INDEX IF NOT EXISTS idx_prod_price ON products(price);');
   
-  // Vector initialisieren (all-MiniLM-L6-v2 = 384 Dimensionen, FLOAT32)
+  // Vector initialisieren (FLOAT32)
   // Distance-Metriken: L2 (default), L1, COSINE, DOT, SQUARED_L2
   FDatabase.Execute(
-    'SELECT vector_init(''products'', ''embedding'', ''type=FLOAT32,dimension=384,distance=L2'');'
+    'SELECT vector_init(''products'', ''embedding'', ''type=FLOAT32,dimension=' +
+    IntToStr(FEmbeddingDimensions) +
+    ',distance=L2'');'
   );
   
   FInitialized := True;
@@ -520,8 +530,9 @@ begin
     '  Kategorien: %d' + sLineBreak +
     '  Durchschnittspreis: %.2f €' + sLineBreak +
     '  Modell: %s' + sLineBreak +
+    '  Dimensionen: %d' + sLineBreak +
     '  Quantisiert: %s',
-    [lProdCount, lCategories, lAvgPrice, FModelName, 
+    [lProdCount, lCategories, lAvgPrice, FModelName, FEmbeddingDimensions,
      BoolToStr(FQuantized, True)]
   );
 end;

@@ -86,7 +86,7 @@ F9
 ```pascal
 Search := TSemanticDocumentSearch.Create('docs.db');
 try
-  Search.Initialize('model.gguf', 'embedder');
+  Search.Initialize('model.gguf', 'embedder', 384);
   
   DocId := Search.AddDocument('Title', 'Content here...');
   Results := Search.Search('query text', 10);
@@ -116,7 +116,7 @@ end;
 ```pascal
 Search := TProductSemanticSearch.Create('products.db');
 try
-  Search.Initialize('model.gguf', 'embedder');
+  Search.Initialize('model.gguf', 'embedder', 384);
   
   // Produkte hinzufügen
   Search.AddProduct('Laptop', 'Description', 'Electronics', 1299.00);
@@ -195,7 +195,8 @@ end;
 type
   TSemanticDocumentSearch = class
   public
-    procedure Initialize(const AModelPath, AModelName: string);
+    procedure Initialize(const AModelPath, AModelName: string;
+                         AEmbeddingDimensions: Integer = 384);
     function AddDocument(const ATitle, AContent: string): Int64;
     function Search(const AQuery: string; ALimit: Integer = 10): TRawUtf8DynArray;
     function FindSimilar(ADocumentId: Int64; ALimit: Integer = 5): TRawUtf8DynArray;
@@ -220,7 +221,8 @@ type
 type
   TProductSemanticSearch = class
   public
-    procedure Initialize(const AModelPath, AModelName: string);
+    procedure Initialize(const AModelPath, AModelName: string;
+                         AEmbeddingDimensions: Integer = 384);
     function AddProduct(const AName, ADescription, ACategory: string; 
                        APrice: Currency): Int64;
     procedure QuantizeEmbeddings;

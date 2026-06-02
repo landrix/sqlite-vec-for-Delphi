@@ -1,3 +1,6 @@
 [submodule "mORMot2"]
 	path = mORMot2
 	url = https://github.com/synopse/mORMot2.git
+[submodule "lib-source/sqlite-lembed"]
+	path = lib-source/sqlite-lembed
+	url = https://github.com/landrix/sqlite-lembed.git

@@ -13,26 +13,49 @@ uses
   mormot.db.raw.sqlite3.static;
 
 procedure RunDemo;
+const
+  // Zum Testen mit BGE-M3 die nächste Zeile aktivieren.
+  // Hinweis: Die mitgelieferte sqlite-lembed v0.0.1-alpha.8 DLL kann
+  // bge-m3-q8_0.gguf je nach GGUF/llama.cpp-Version nicht laden.
+  {.$DEFINE USE_BGE_M3}
+
+  {$IFDEF USE_BGE_M3}
+  CModelFile = 'bge-m3-q8_0.gguf';
+  CModelName = 'bge-m3';
+  CModelDimensions = 1024;
+  {$ELSE}
+  // all-MiniLM-L6-v2: schnell, klein, 384 Dimensionen
+  CModelFile = 'all-MiniLM-L6-v2.e4ce9877.q8_0.gguf';
+  CModelName = 'miniLM';
+  CModelDimensions = 384;
+  {$ENDIF}
 var
   lSearch: TSemanticDocumentSearch;
   lResults: TRawUtf8DynArray;
   i: Integer;
+  lDBPath: string;
   lDocId: Int64;
 begin
   WriteLn('=== SQLite Lembed + Vec Demo ===');
   WriteLn;
   
+  lDBPath := ExtractFilePath(ParamStr(0)) + 'demo_semantic_search.db';
+
+  // Beim Wechsel des Modells ändern sich ggf. die Vektor-Dimensionen.
+  // Für die Demo wird die Datenbank deshalb frisch aufgebaut.
+  DeleteFile(lDBPath);
+
   // Datenbank erstellen
-  lSearch := TSemanticDocumentSearch.Create('demo_semantic_search.db');
+  lSearch := TSemanticDocumentSearch.Create(lDBPath);
   try
     WriteLn('Initialisiere Datenbank und lade Modell...');
     
-    // WICHTIG: Passe den Pfad zum Modell an!
-    // Download: https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-MiniLM-L6-v2/all-MiniLM-L6-v2.e4ce9877.q8_0.gguf
-    lSearch.Initialize(ExtractFilePath(ParamStr(0))+'all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'miniLM');
-
-    // Download: https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF/resolve/main/bge-m3-q8_0.gguf?download=true
-    //lSearch.Initialize(ExtractFilePath(ParamStr(0))+'bge-m3-q8_0.gguf', 'bge-m3');
+    // WICHTIG: CModelFile muss im Programmverzeichnis liegen.
+    lSearch.Initialize(
+      ExtractFilePath(ParamStr(0)) + CModelFile,
+      CModelName,
+      CModelDimensions
+    );
 
     WriteLn('✓ Initialisierung abgeschlossen');
     WriteLn;

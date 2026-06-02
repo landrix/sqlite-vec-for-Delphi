@@ -13,6 +13,22 @@ uses
   mormot.db.raw.sqlite3.static;
 
 procedure RunProductSearchDemo;
+const
+  // Zum Testen mit BGE-M3 die nächste Zeile aktivieren.
+  // Hinweis: Die mitgelieferte sqlite-lembed v0.0.1-alpha.8 DLL kann
+  // bge-m3-q8_0.gguf je nach GGUF/llama.cpp-Version nicht laden.
+  // {$DEFINE USE_BGE_M3}
+
+  {$IFDEF USE_BGE_M3}
+  CModelFile = 'bge-m3-q8_0.gguf';
+  CModelName = 'bge-m3';
+  CModelDimensions = 1024;
+  {$ELSE}
+  // all-MiniLM-L6-v2: schnell, klein, 384 Dimensionen
+  CModelFile = 'all-MiniLM-L6-v2.e4ce9877.q8_0.gguf';
+  CModelName = 'miniLM';
+  CModelDimensions = 384;
+  {$ENDIF}
 var
   lSearch: TProductSemanticSearch;
   lResults: TRawUtf8DynArray;
@@ -33,9 +49,8 @@ begin
   try
     WriteLn('[1/7] Initialisiere Datenbank und lade Modell...');
     
-    // WICHTIG: Modell-Datei muss vorhanden sein!
-    // Download: https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-MiniLM-L6-v2/all-MiniLM-L6-v2.e4ce9877.q8_0.gguf
-    lSearch.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'miniLM');
+    // WICHTIG: CModelFile muss im Programmverzeichnis liegen.
+    lSearch.Initialize(CModelFile, CModelName, CModelDimensions);
     WriteLn('      ✓ Extensions geladen: lembed0.dll + vector.dll');
     WriteLn;
     

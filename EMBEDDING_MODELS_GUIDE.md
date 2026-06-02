@@ -36,7 +36,7 @@ https://huggingface.co/asg017/sqlite-lembed-model-examples/resolve/main/all-Mini
 
 **Verwendung:**
 ```pascal
-Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'miniLM');
+Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'miniLM', 384);
 
 // Vector-Tabelle (384 Dimensionen!)
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[384]);');
@@ -73,7 +73,7 @@ https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF/resolve/main/nomic-em
 
 **Verwendung:**
 ```pascal
-Search.Initialize('nomic-embed-text-v1.5.Q8_0.gguf', 'nomic');
+Search.Initialize('nomic-embed-text-v1.5.Q8_0.gguf', 'nomic', 768);
 
 // Vector-Tabelle (768 Dimensionen!)
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[768]);');
@@ -103,7 +103,7 @@ https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1/resolve/main/gguf/mxba
 
 **Verwendung:**
 ```pascal
-Search.Initialize('mxbai-embed-large-v1-Q8_0.gguf', 'mxbai');
+Search.Initialize('mxbai-embed-large-v1-Q8_0.gguf', 'mxbai', 1024);
 
 // Vector-Tabelle (1024 Dimensionen!)
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
@@ -130,6 +130,9 @@ Dokumenttexte werden normalerweise ohne Prefix eingebettet.
 
 #### 4. BGE-M3 (Multilingual + Long Context)
 
+**Kompatibilität mit diesem Projekt:**
+Die mitgelieferte `sqlite-lembed v0.0.1-alpha.8` DLL kann manche BGE-M3-GGUF-Dateien nicht laden und bricht dann schon bei `lembed_model_from_file(...)` mit `SQL logic error` ab. BGE-M3 deshalb nur mit einer passend neu gebauten `lembed0.dll`/`llama.cpp`-Version verwenden. Für die gebündelte DLL zuerst `all-MiniLM-L6-v2`, `nomic-embed-text-v1.5` oder `mxbai-embed-large-v1` testen.
+
 **Eigenschaften:**
 - **Dimensionen:** 1024
 - **Größe:** ca. 2.3 GB als HF-Modell; GGUF je nach Quantisierung deutlich kleiner
@@ -150,7 +153,7 @@ https://huggingface.co/ggml-org/bge-m3-Q8_0-GGUF
 
 **Verwendung:**
 ```pascal
-Search.Initialize('bge-m3-Q8_0.gguf', 'bge-m3');
+Search.Initialize('bge-m3-Q8_0.gguf', 'bge-m3', 1024);
 
 // Vector-Tabelle (1024 Dimensionen!)
 sql.Execute('CREATE VIRTUAL TABLE vec_docs USING vec0(embedding float[1024]);');
@@ -646,7 +649,7 @@ begin
   Search := TProductSemanticSearch.Create('products_de.db');
   try
     // Nomic-Modell (768 Dimensionen!)
-    Search.Initialize('nomic-embed-text-v1.5.Q8_0.gguf', 'nomic');
+    Search.Initialize('nomic-embed-text-v1.5.Q8_0.gguf', 'nomic', 768);
     
     // Deutsche Produkte
     Search.AddProduct(

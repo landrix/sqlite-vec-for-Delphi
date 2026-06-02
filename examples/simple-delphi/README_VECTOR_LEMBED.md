@@ -64,7 +64,7 @@ begin
   Search := TProductSemanticSearch.Create('products.db');
   try
     // Initialisieren
-    Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'embedder');
+    Search.Initialize('all-MiniLM-L6-v2.e4ce9877.q8_0.gguf', 'embedder', 384);
     
     // Produkte hinzufügen
     Search.AddProduct(
@@ -94,7 +94,8 @@ end;
 
 ### Initialize
 ```pascal
-procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder');
+procedure Initialize(const AModelPath: string; const AModelName: string = 'embedder';
+  AEmbeddingDimensions: Integer = 384);
 ```
 Lädt Extensions und registriert Embedding-Modell.
 
