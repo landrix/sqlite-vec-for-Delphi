@@ -58,6 +58,7 @@ begin
     );
 
     WriteLn('✓ Initialisierung abgeschlossen');
+    WriteLn('sqlite-lembed Version: ', lSearch.GetLembedVersion);
     WriteLn;
     
     // Beispiel-Dokumente hinzufügen

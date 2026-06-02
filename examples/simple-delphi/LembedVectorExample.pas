@@ -51,6 +51,11 @@ type
     procedure DeleteDocument(ADocumentId: Int64);
     
     /// <summary>
+    /// Gibt die geladene sqlite-lembed Version zurück
+    /// </summary>
+    function GetLembedVersion: string;
+
+    /// <summary>
     /// Gibt Statistiken über die Datenbank zurück
     /// </summary>
     function GetStats: string;
@@ -365,6 +370,23 @@ begin
   try
     lStmt.Bind(1, ADocumentId);
     lStmt.Step;
+  finally
+    lStmt.Close;
+  end;
+end;
+
+function TSemanticDocumentSearch.GetLembedVersion: string;
+var
+  lStmt: TSQLRequest;
+begin
+  if not FInitialized then
+    raise Exception.Create('Datenbank nicht initialisiert.');
+
+  Result := '';
+  lStmt.Prepare(FDatabase.DB, 'SELECT lembed_version();');
+  try
+    if lStmt.Step = SQLITE_ROW then
+      Result := Utf8ToString(lStmt.FieldS(0));
   finally
     lStmt.Close;
   end;

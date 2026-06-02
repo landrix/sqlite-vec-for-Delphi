@@ -63,19 +63,11 @@ cmd /c "call ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC
 
 ## sqlite-lembed Notes
 
-The bundled binary `lembed0.dll` in this Delphi project comes from
-`sqlite-lembed v0.0.1-alpha.8`. It can load the small sqlite-lembed example model
-`all-MiniLM-L6-v2`, but may fail to load newer GGUF embedding models such as
-BGE-M3 with a generic `SQL logic error`.
-
-For BGE-M3 support, rebuild `lembed0.dll` from the `landrix/sqlite-lembed`
-submodule with a compatible `llama.cpp` version, then replace the DLL used by
-the Delphi example output directory.
-
-The local integration branch currently used for this work is:
+The bundled `sqlite-lembed` binary used by this Delphi project is maintained in
+the `landrix/sqlite-lembed` fork. The current Landrix version is:
 
 ```text
-landrix/update-llama-pr19-21
+v0.0.1-alpha.8-landrix.1
 ```
 
 It contains the upstream sqlite-lembed pull requests:
@@ -83,19 +75,47 @@ It contains the upstream sqlite-lembed pull requests:
 - `#19` - update `llama.cpp`, adapt the new llama.cpp API, fix build process.
 - `#21` - prevent crashes for long inputs and return better embedding errors.
 
-Build the x64 DLLs from `lib-source/sqlite-lembed` with:
+It also includes Windows CMake fixes and a cleanup fix that releases registered
+`llama_context` and `llama_model` instances before shutting down the llama
+backend.
+
+## Build and Deploy sqlite-lembed
+
+Build the x64 DLLs and deploy them with:
 
 ```powershell
-cmd /c "call ""C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"" && cmake -S . -B build-vs-x64 -G ""Visual Studio 17 2022"" -A x64 -DCMAKE_BUILD_TYPE=Release && cmake --build build-vs-x64 --config Release --target sqlite_lembed -- /m"
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-lembed.ps1
 ```
 
-The runtime DLLs are written to:
+The script builds from:
 
 ```text
-lib-source/sqlite-lembed/build-vs-x64/bin/Release
+lib-source/sqlite-lembed
 ```
 
-Copy these files together into the Delphi output directory:
+and always copies the runtime DLLs to:
+
+```text
+lib/sqlite-lembed
+```
+
+This directory is the canonical source for the Delphi resource file and release
+packaging.
+
+By default the script also copies the same DLLs to the simple Delphi demo output
+directory:
+
+```text
+examples/simple-delphi/Win64/Debug
+```
+
+Use `-SkipDelphiOutput` to update only `lib/sqlite-lembed`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-lembed.ps1 -SkipDelphiOutput
+```
+
+The runtime set is:
 
 ```text
 lembed0.dll
@@ -104,6 +124,15 @@ ggml.dll
 ggml-base.dll
 ggml-cpu.dll
 ```
+
+All five files must stay together unless `sqlite-lembed` is rebuilt as a fully
+static single DLL.
+
+## Model Notes
+
+`all-MiniLM-L6-v2` works as the small demo model with 384 dimensions. BGE-M3
+works with the Landrix `sqlite-lembed` build and needs a vector table with 1024
+dimensions.
 
 After changing the embedding model or rebuilding against a llama.cpp version
 that changes embedding output, regenerate all stored embeddings and rebuild the
