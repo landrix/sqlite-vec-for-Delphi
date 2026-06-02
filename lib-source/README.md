@@ -5,13 +5,14 @@ when rebuilding the native SQLite extensions.
 
 ## Submodules
 
-`sqlite-lembed` is tracked as a Git submodule:
+`sqlite-lembed` and `sqlite-vec` are tracked as Git submodules:
 
 ```text
 lib-source/sqlite-lembed -> https://github.com/landrix/sqlite-lembed.git
+lib-source/sqlite-vec    -> https://github.com/landrix/sqlite-vec.git
 ```
 
-It also contains nested submodules, including `vendor/llama.cpp`.
+`sqlite-lembed` also contains nested submodules, including `vendor/llama.cpp`.
 
 Initialize or refresh everything from the repository root with:
 
@@ -96,7 +97,7 @@ lib-source/sqlite-lembed
 and always copies the runtime DLLs to:
 
 ```text
-lib/sqlite-lembed
+lib/sqlite-lembed/x86_64-win64
 ```
 
 This directory is the canonical source for the Delphi resource file and release
@@ -109,7 +110,7 @@ directory:
 examples/simple-delphi/Win64/Debug
 ```
 
-Use `-SkipDelphiOutput` to update only `lib/sqlite-lembed`:
+Use `-SkipDelphiOutput` to update only `lib/sqlite-lembed/x86_64-win64`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-lembed.ps1 -SkipDelphiOutput
@@ -127,6 +128,121 @@ ggml-cpu.dll
 
 All five files must stay together unless `sqlite-lembed` is rebuilt as a fully
 static single DLL.
+
+## Build and Deploy sqlite-vec
+
+`sqlite-vec` builds into one loadable extension file and has no additional
+runtime DLL dependencies.
+
+Build the Windows x64 and Windows ARM64 DLLs with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-vec.ps1
+```
+
+The script copies the outputs to:
+
+```text
+lib/sqlite-vec/x86_64-win64/vec0.dll
+lib/sqlite-vec/aarch64-win64/vec0.dll
+```
+
+To build only one Windows platform:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-vec.ps1 -Platform x64
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-vec.ps1 -Platform arm64
+```
+
+The Delphi resource file currently embeds the Win64 x64 DLL from:
+
+```text
+lib/sqlite-vec/x86_64-win64/vec0.dll
+```
+
+## Build Linux sqlite-lembed
+
+Linux binaries are platform-specific. The current WSL environment on this
+machine is Linux `aarch64`, so the generated files are ARM64 Linux binaries, not
+x86_64 Linux binaries.
+
+Build and deploy the Linux/aarch64 `.so` files with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-lembed-wsl.ps1
+```
+
+The script builds through WSL and copies the runtime files to:
+
+```text
+lib/sqlite-lembed/aarch64-linux
+```
+
+The Linux runtime set is:
+
+```text
+lembed0.so
+libllama.so
+libggml.so
+libggml-base.so
+libggml-cpu.so
+```
+
+For x86_64 Linux support, run the same build on an x86_64 Linux/WSL machine or
+add a cross-compilation toolchain. Do not ship the `aarch64-linux` binaries as
+generic Linux binaries.
+
+On a native x86_64 Linux machine, install the required packages:
+
+```bash
+sudo apt update
+sudo apt install -y git cmake ninja-build build-essential curl
+```
+
+Then run:
+
+```bash
+./lib-source/build-sqlite-lembed-linux-x86_64.sh
+```
+
+The script copies the runtime files to:
+
+```text
+lib/sqlite-lembed/x86_64-linux
+```
+
+## Build Linux sqlite-vec
+
+Build and deploy the local WSL Linux/aarch64 `sqlite-vec` binary with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File lib-source/build-sqlite-vec-wsl.ps1
+```
+
+The script copies the runtime file to:
+
+```text
+lib/sqlite-vec/aarch64-linux/vec0.so
+```
+
+On a native x86_64 Linux machine, install the required packages:
+
+```bash
+sudo apt update
+sudo apt install -y git build-essential
+```
+
+Then run:
+
+```bash
+./lib-source/build-sqlite-vec-linux-x86_64.sh
+```
+
+The script copies the runtime file to:
+
+```text
+lib/sqlite-vec/x86_64-linux/vec0.so
+```
 
 ## Model Notes
 

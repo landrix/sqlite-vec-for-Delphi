@@ -29,6 +29,7 @@
 lib/synopse2
 lib/sqlite-vector
 lib-source/sqlite-vector
+lib-source/.build/
 Win64
 
 GPATH
@@ -43,6 +44,10 @@ GTAGS
 *.bpi
 *.dcp
 *.so
+!lib/sqlite-lembed/aarch64-linux/*.so
+!lib/sqlite-lembed/x86_64-linux/*.so
+!lib/sqlite-vec/aarch64-linux/*.so
+!lib/sqlite-vec/x86_64-linux/*.so
 *.apk
 *.drc
 *.map
@@ -59,6 +64,7 @@ GTAGS
 *.cfg
 *.hpp
 *Resource.rc
+!sqliteVecForDelphiResource.rc
 
 # Delphi local files (user-specific info)
 *.local

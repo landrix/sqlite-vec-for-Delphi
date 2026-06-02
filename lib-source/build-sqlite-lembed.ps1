@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $RepoRoot = Split-Path -Parent $ScriptDir
 $SourceDir = Join-Path $ScriptDir "sqlite-lembed"
-$LibDir = Join-Path $RepoRoot "lib\sqlite-lembed"
+$LibDir = Join-Path $RepoRoot "lib\sqlite-lembed\x86_64-win64"
 $DelphiOutputDir = Join-Path $RepoRoot "examples\simple-delphi\Win64\Debug"
 $VsVars = "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
 

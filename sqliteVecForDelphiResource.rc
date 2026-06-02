@@ -1,0 +1,7 @@
+VEC0DLL RCDATA "lib\\sqlite-vec\\x86_64-win64\\vec0.dll"
+LEMBED0DLL RCDATA "lib\\sqlite-lembed\\x86_64-win64\\lembed0.dll"
+LEMBED0DLL1 RCDATA "lib\\sqlite-lembed\\x86_64-win64\\ggml.dll"
+LEMBED0DLL2 RCDATA "lib\\sqlite-lembed\\x86_64-win64\\ggml-base.dll"
+LEMBED0DLL3 RCDATA "lib\\sqlite-lembed\\x86_64-win64\\ggml-cpu.dll"
+LEMBED0DLL4 RCDATA "lib\\sqlite-lembed\\x86_64-win64\\llama.dll"
+VECTORDLL RCDATA "lib\\sqlite-vector\\vector.dll"
